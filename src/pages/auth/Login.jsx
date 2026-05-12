@@ -9,7 +9,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-import axiosInstance from "../../api/axiosInstance";
+import { login } from "../../api/authApi";
 import { setAuth } from "../../utils/auth";
 
 function Login() {
@@ -30,41 +30,34 @@ function Login() {
 
   try {
 
-    const res = await axiosInstance.post(
-      "/auth/login",
-      {
-        username,
-        password,
-        role,
-      }
-    );
+    const res = await login(username, password, role);
 
     const {
       token,
-      role: userRole,
-    } = res.data;
+      user: userData,
+    } = res;
 
     setAuth({
       token,
-      role: userRole,
+      role: userData.role,
     });
 
     // Redirect
-    if (userRole === "citizen") {
+    if (userData.role === "citizen") {
       navigate("/citizen");
     }
 
-    else if (userRole === "department") {
+    else if (userData.role === "department") {
       navigate("/department");
     }
 
-    else if (userRole === "admin") {
+    else if (userData.role === "admin") {
       navigate("/admin");
     }
 
   } catch (err) {
 
-    setError("Invalid credentials");
+    setError(err.response?.data?.message || "Invalid credentials");
 
   } finally {
 
